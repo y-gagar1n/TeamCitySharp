@@ -7,6 +7,7 @@
             return Name;
         }
 
+        public string ParentProjectId { get; set; }
         public bool Archived { get; set; }
         public string Description { get; set; }
         public string Href { get; set; }
@@ -16,5 +17,6 @@
 
         public BuildTypeWrapper BuildTypes { get; set; }
         public Parameters Parameters { get; set; }
+        public Projects Projects { get; set; }
     }
 }

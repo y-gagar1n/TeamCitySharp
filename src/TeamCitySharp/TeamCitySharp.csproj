@@ -72,6 +72,7 @@
     <Compile Include="ActionTypes\Statistics.cs" />
     <Compile Include="ActionTypes\TestOccurrences.cs" />
     <Compile Include="Connection\ITeamCityCaller.cs" />
+    <Compile Include="DomainEntities\Projects.cs" />
     <Compile Include="DomainEntities\TestOccurrence.cs" />
     <Compile Include="DomainEntities\TestOccurrenceWrapper.cs" />
     <Compile Include="Locators\ChangeLocator.cs" />
