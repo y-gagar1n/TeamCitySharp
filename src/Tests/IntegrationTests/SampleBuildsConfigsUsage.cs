@@ -61,6 +61,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
+    [Ignore("Requires admin access")]
     public void it_pauses_configuration()
     {
       string buildConfigId = "bt437";
@@ -71,6 +72,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
+    [Ignore("Requires admin access")]
     public void it_unpauses_configuration()
     {
       string buildConfigId = "bt437";
@@ -92,7 +94,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_build_configs_by_project_id()
     {
-      string projectId = "project137";
+      string projectId = "YouTrackRest";
       var buildConfigs = _client.BuildConfigs.ByProjectId(projectId);
 
       Assert.That(buildConfigs.Any(), "Cannot find a build type for that projectId");

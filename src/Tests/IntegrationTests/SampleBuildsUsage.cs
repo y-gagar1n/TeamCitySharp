@@ -48,7 +48,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_last_successful_build_by_build_config_id()
     {
-      const string buildConfigId = "bt437";
+      const string buildConfigId = "bt123";
       var build = _client.Builds.LastSuccessfulBuildByBuildConfigId(buildConfigId);
 
       Assert.That(build != null, "No successful builds have been found");
@@ -57,7 +57,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_last_successful_builds_by_build_config_id()
     {
-      const string buildConfigId = "bt437";
+      const string buildConfigId = "bt123";
       var buildDetails = _client.Builds.SuccessfulBuildsByBuildConfigId(buildConfigId);
 
       Assert.That(buildDetails.Any(), "No successful builds have been found");
@@ -66,7 +66,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_last_failed_build_by_build_config_id()
     {
-      const string buildConfigId = "bt437";
+      const string buildConfigId = "bt123";
       var buildDetails = _client.Builds.LastFailedBuildByBuildConfigId(buildConfigId);
 
       Assert.That(buildDetails != null, "No failed builds have been found");
@@ -75,7 +75,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_all_non_successful_builds_by_config_id()
     {
-      const string buildConfigId = "bt437";
+      const string buildConfigId = "bt123";
       var builds = _client.Builds.FailedBuildsByBuildConfigId(buildConfigId);
 
       Assert.That(builds.Any(), "No failed builds have been found");
@@ -84,7 +84,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_last_error_build_by_config_id()
     {
-      const string buildConfigId = "bt437";
+      const string buildConfigId = "bt123";
       var buildDetails = _client.Builds.LastErrorBuildByBuildConfigId(buildConfigId);
 
       Assert.That(buildDetails != null, "No errored builds have been found");
@@ -93,7 +93,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_all_error_builds_by_config_id()
     {
-      const string buildId = "bt437";
+      const string buildId = "bt123";
       var builds = _client.Builds.ErrorBuildsByBuildConfigId(buildId);
 
       Assert.That(builds.Any(), "No errored builds have been found");
@@ -102,7 +102,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_the_last_build_status_by_build_config_id()
     {
-      const string buildConfigId = "bt437";
+      const string buildConfigId = "bt123";
       var build = _client.Builds.LastBuildByBuildConfigId(buildConfigId);
 
       Assert.That(build != null, "No builds for this build config have been found");
@@ -111,7 +111,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_all_builds_by_build_config_id()
     {
-      const string buildConfigId = "bt437";
+      const string buildConfigId = "bt123";
       var builds = _client.Builds.ByBuildConfigId(buildConfigId);
 
       Assert.That(builds.Any(), "No builds for this build configuration have been found");
@@ -120,7 +120,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_all_builds_by_build_config_id_and_tag()
     {
-      const string buildConfigId = "bt437";
+      const string buildConfigId = "bt123";
       const string tag = "Release";
       var builds = _client.Builds.ByConfigIdAndTag(buildConfigId, tag);
 
@@ -173,7 +173,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_does_not_populate_the_status_text_field_of_the_build_object()
     {
-      const string buildConfigId = "bt85";
+      const string buildConfigId = "bt123";
 
       var build =
         _client.Builds.ByBuildLocator(BuildLocator.WithDimensions(BuildTypeLocator.WithId(buildConfigId),
@@ -185,11 +185,9 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void ig_returns_correct_build_when_calling_by_id()
     {
-      const string buildId = "5726";
-      var client = new TeamCityClient("localhost:81");
-      client.Connect("admin", "qwerty");
+      const string buildId = "212861";
 
-      var build = client.Builds.ById(buildId);
+      var build = _client.Builds.ById(buildId);
 
       Assert.That(build != null);
       Assert.That(build.Id == buildId);

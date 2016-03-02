@@ -40,7 +40,6 @@ namespace TeamCitySharp.IntegrationTests
     {
       var client = new TeamCityClient("teamcity.codebetter.com");
 
-      var changes = client.Changes.All();
       Assert.Throws<ArgumentException>(() => client.Changes.All());
     }
 
@@ -52,7 +51,7 @@ namespace TeamCitySharp.IntegrationTests
       Assert.That(changes.Any(), "Cannot find any changes recorded in any of the projects");
     }
 
-    [TestCase("42843")]
+    [TestCase("303843")]
     public void it_returns_change_details_by_change_id(string changeId)
     {
       Change changeDetails = _client.Changes.ByChangeId(changeId);

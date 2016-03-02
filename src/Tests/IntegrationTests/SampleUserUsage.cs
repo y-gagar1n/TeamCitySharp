@@ -43,6 +43,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
+    [Ignore("Requires admin access")]
     public void it_returns_all_user_groups()
     {
       List<Group> groups = _client.Users.AllUserGroups();
@@ -51,6 +52,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
+    [Ignore("Requires admin access")]
     public void it_returns_all_users_by_user_group_name()
     {
       string userGroupName = "ALL_USERS_GROUP";
@@ -60,6 +62,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
+    [Ignore("Requires admin access")]
     public void it_returns_all_roles_by_user_group_name()
     {
       string userGroupName = "ALL_USERS_GROUP";
@@ -69,6 +72,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
+    [Ignore("Requires admin access")]
     public void it_returns_all_users()
     {
       List<User> users = _client.Users.All();
@@ -77,6 +81,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
+    [Ignore("Requires admin access")]
     public void it_returns_all_user_roles_by_user_name()
     {
       string userName = "teamcitysharpuser";
@@ -104,13 +109,13 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
+    [Ignore("Requires TC server with no guest mode enabled")]
     public void it_should_throw_exception_when_forbidden_status_code_returned()
     {
       var client = new TeamCityClient("localhost:81");
       client.ConnectAsGuest();
 
       Assert.Throws<Exception>(() => client.Users.All());
-
     }
   }
 }

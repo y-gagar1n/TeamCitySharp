@@ -42,6 +42,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
+    [Ignore("Requires project edit access")]
     public void it_returns_all_vcs_roots()
     {
       List<VcsRoot> vcsRoots = _client.VcsRoots.All();
@@ -50,6 +51,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [TestCase("1")]
+    [Ignore("Requires project edit access")]
     public void it_returns_vcs_details_when_passing_vcs_root_id(string vcsRootId)
     {
       VcsRoot rootDetails = _client.VcsRoots.ById(vcsRootId);

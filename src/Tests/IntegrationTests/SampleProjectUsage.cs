@@ -53,7 +53,7 @@ namespace TeamCitySharp.IntegrationTests
       Assert.That(projects.Any(), "No projects were found for this server");
     }
 
-    [TestCase("project137")]
+    [TestCase("YouTrackRest")]
     public void it_returns_project_details_when_passing_a_project_id(string projectId)
     {
       Project projectDetails = _client.Projects.ById(projectId);
@@ -61,7 +61,7 @@ namespace TeamCitySharp.IntegrationTests
       Assert.That(projectDetails != null, "No details found for that specific project");
     }
 
-    [TestCase("YouTrackSharp")]
+    [TestCase("YouTrack.Rest")]
     public void it_returns_project_details_when_passing_a_project_name(string projectName)
     {
       Project projectDetails = _client.Projects.ByName(projectName);
@@ -72,7 +72,7 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_returns_project_details_when_passing_project()
     {
-      var project = new Project {Id = "project137"};
+      var project = new Project {Id = "YouTrackRest" };
       Project projectDetails = _client.Projects.Details(project);
 
       Assert.That(!string.IsNullOrWhiteSpace(projectDetails.Id));
@@ -80,12 +80,11 @@ namespace TeamCitySharp.IntegrationTests
 
 
     [Test]
+    [Ignore("Requires admin access")]
     public void it_returns_project_details_when_creating_project()
     {
-      var client = new TeamCityClient("localhost:81");
-      client.Connect("admin", "qwerty");
       var projectName = Guid.NewGuid().ToString("N");
-      var project = client.Projects.Create(projectName);
+      var project = _client.Projects.Create(projectName);
 
       Assert.That(project, Is.Not.Null);
       Assert.That(project.Name, Is.EqualTo(projectName));

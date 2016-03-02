@@ -50,7 +50,7 @@ namespace TeamCitySharp.IntegrationTests
       Assert.That(agents.Any(), "No agents were found");
     }
 
-    [TestCase("agent01")]
+    [TestCase("JetBrains-dotnet-agent01")]
     public void it_returns_last_build_status_for_agent(string agentName)
     {
       Build lastBuild = _client.Builds.LastBuildByAgent(agentName);

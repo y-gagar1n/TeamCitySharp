@@ -53,6 +53,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
+    [Ignore("Requires admin access")]
     public void it_returns_all_server_plugins()
     {
       List<Plugin> plugins = _client.ServerInformation.AllPlugins();
