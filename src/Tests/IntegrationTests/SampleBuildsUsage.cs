@@ -173,12 +173,10 @@ namespace TeamCitySharp.IntegrationTests
     [Test]
     public void it_does_not_populate_the_status_text_field_of_the_build_object()
     {
-      const string buildConfigId = "bt5";
-      var client = new TeamCityClient("localhost:81");
-      client.Connect("admin", "qwerty");
+      const string buildConfigId = "bt85";
 
       var build =
-        client.Builds.ByBuildLocator(BuildLocator.WithDimensions(BuildTypeLocator.WithId(buildConfigId),
+        _client.Builds.ByBuildLocator(BuildLocator.WithDimensions(BuildTypeLocator.WithId(buildConfigId),
                                                                  maxResults: 1));
       Assert.That(build.Count == 1);
       Assert.IsNull(build[0].StatusText);
