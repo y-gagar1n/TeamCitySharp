@@ -20,10 +20,10 @@ namespace TeamCitySharp.ActionTypes
     List<Build> ByBuildConfigId(string buildConfigId);
     List<Build> RunningByBuildConfigId(string buildConfigId);
     List<Build> ByBuildConfigId(string buildConfigId, List<String> param);
-    List<Build> ByBuildLocator(BuildLocator locator, List<String> param);
+    List<Build> ByBuildLocator(IBuildLocator locator, List<String> param);
     List<Build> ByConfigIdAndTag(string buildConfigId, string tag);
     List<Build> ByUserName(string userName);
-    List<Build> ByBuildLocator(BuildLocator locator);
+    List<Build> ByBuildLocator(IBuildLocator locator);
     List<Build> AllSinceDate(DateTime date);
     List<Build> AllBuildsOfStatusSinceDate(DateTime date, BuildStatus buildStatus);
     List<Build> NonSuccessfulBuildsForUser(string userName);

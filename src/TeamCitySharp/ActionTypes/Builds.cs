@@ -24,14 +24,14 @@ namespace TeamCitySharp.ActionTypes
       return newInstance;
     }
 
-    public List<Build> ByBuildLocator(BuildLocator locator)
+    public List<Build> ByBuildLocator(IBuildLocator locator)
     {
       var buildWrapper =
         _caller.GetFormat<BuildWrapper>(ActionHelper.CreateFieldUrl("/app/rest/builds?locator={0}", _fields), locator);
       return int.Parse(buildWrapper.Count) > 0 ? buildWrapper.Build : new List<Build>();
     }
 
-    public List<Build> ByBuildLocator(BuildLocator locator, List<String> param)
+    public List<Build> ByBuildLocator(IBuildLocator locator, List<String> param)
     {
       var strParam = "";
       foreach (var tmpParam in param)

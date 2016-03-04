@@ -2,7 +2,7 @@
 
 namespace TeamCitySharp.Locators
 {
-  public class ProjectLocator
+  public class ProjectLocator : IProjectLocator
   {
     public static ProjectLocator WithId(string id)
     {

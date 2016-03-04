@@ -54,6 +54,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionTypes\ServerInformationTest.cs" />
+    <Compile Include="Locators\BuildLocatorTests.cs" />
+    <Compile Include="Locators\BuildTypeLocatorTests.cs" />
+    <Compile Include="Locators\FluidBranchLocatorTests.cs" />
+    <Compile Include="Locators\FluidBuildLocatorTests.cs" />
+    <Compile Include="Locators\FluidBuildTypeLocatorTests.cs" />
+    <Compile Include="Locators\FluidProjectLocatorTests.cs" />
+    <Compile Include="Locators\FluidUserLocatorTests.cs" />
+    <Compile Include="Locators\UserLocatorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
