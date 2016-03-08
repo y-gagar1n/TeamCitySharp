@@ -1,5 +1,10 @@
 #TeamCitySharp
 
+Due to the original project appearing to be abandoned, we are attempting to keep a fork up to date with feature additions from other people's forks we have found useful for our internal usage
+
+If anyone wants to target Pull Requests here, we will endeavour to accept them
+
+
 *.NET Library to access TeamCity via their REST API.
 
 For more information on TeamCity visit:
