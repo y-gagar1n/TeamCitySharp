@@ -1,0 +1,14 @@
+{
+  "baseversion": "0.4.#{buildCounter}",
+  "branches": [
+    {
+      "match": "default",
+      "tag": "#{branchName}",
+      "trim": "feature-"
+    },
+    {
+      "match": "master",
+      "tag": ""
+    }
+  ]
+}
