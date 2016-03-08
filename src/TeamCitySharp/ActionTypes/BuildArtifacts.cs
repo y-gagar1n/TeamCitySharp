@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml;
-
 using TeamCitySharp.Connection;
 
 namespace TeamCitySharp.ActionTypes
 {
     internal class BuildArtifacts : IBuildArtifacts
     {
-        private readonly TeamCityCaller _caller;
+        private const string TeamCityRestBuildArtifactChildren = "/artifacts/children";
+        private const string TeamCityRestBuildArtifactMetadata = "/artifacts/metadata";
+        private const string TeamCityRestBuildFormat = "/app/rest/builds/id:{0}";
 
-        public BuildArtifacts(TeamCityCaller caller)
+        private readonly ITeamCityCaller _caller;
+
+        public BuildArtifacts(ITeamCityCaller caller)
         {
             _caller = caller;
         }
@@ -27,14 +32,78 @@ namespace TeamCitySharp.ActionTypes
         {
             return new ArtifactWrapper(_caller, buildConfigId);
         }
+
+        /// <summary>
+        /// Retrieves the artifacts associated to the specified <see cref="Build"/>.
+        /// </summary>
+        /// <param name="build">
+        /// The TeamCity <see cref="Build"/> of the desired artifacts.
+        /// </param>
+        /// <param name="artifactRelativeName">
+        /// the relative path and filename of a specific artifact. Supports referencing files under archives using the  &quot;!&quot; delimiter after the archive name.
+        /// </param>
+        /// <remarks>
+        /// This method is only supported by TeamCity 8.x and higher.
+        /// </remarks>
+        public IArtifactWrapper2 ByBuild(DomainEntities.Build build, string artifactRelativeName = "")
+        {
+            if (build == null || string.IsNullOrEmpty(build.Id))
+            {
+                throw new ArgumentException("Invalid build specified. Please be sure to use the methods of the IBuilds interface to obtain it.");
+            }
+
+            var receivedBuildHref = string.Format(TeamCityRestBuildFormat, build.Id);
+            if (!build.Href.EndsWith(receivedBuildHref))
+            {
+                throw new ArgumentException("Invalid build specified. Please be sure to use the methods of the IBuilds interface to obtain it.");
+            }
+
+            DomainEntities.Artifacts artifacts = null;
+            try
+            {
+                artifacts = _caller.GetFormat<DomainEntities.Artifacts>("{0}{1}{2}",
+                                                             build.Href,
+                                                             TeamCityRestBuildArtifactChildren,
+                                                             string.IsNullOrEmpty(artifactRelativeName) ? string.Empty : string.Format("/{0}", artifactRelativeName));
+            }
+            catch
+            {
+                
+            }
+
+            if (artifacts == null)
+            {
+                var artifact = _caller.GetFormat<DomainEntities.Artifact>("{0}{1}{2}",
+                                                             build.Href,
+                                                             TeamCityRestBuildArtifactMetadata,
+                                                             string.IsNullOrEmpty(artifactRelativeName) ? string.Empty : string.Format("/{0}", artifactRelativeName));
+
+                artifacts = new DomainEntities.Artifacts()
+                {
+                    Files = new List<DomainEntities.Artifact> { artifact }
+                };
+            }
+
+            return new ArtifactWrapper2(_caller, artifacts, artifactRelativeName);
+        }
+
+        /// <summary>
+        /// Retrieves the content of a specified Artifact
+        /// </summary>
+        public string GetArtifactContent(string artifactUrl)
+        {
+            var artifact = _caller.GetFormat<DomainEntities.Artifact>(artifactUrl);
+            string raw = _caller.GetRaw(artifact.Content.Href);
+            return raw;
+        }
     }
 
     public class ArtifactWrapper
     {
-        private readonly TeamCityCaller _caller;
+        private readonly ITeamCityCaller _caller;
         private readonly string _buildConfigId;
 
-        internal ArtifactWrapper(TeamCityCaller caller, string buildConfigId)
+        internal ArtifactWrapper(ITeamCityCaller caller, string buildConfigId)
         {
             _caller = caller;
             _buildConfigId = buildConfigId;
@@ -62,15 +131,14 @@ namespace TeamCitySharp.ActionTypes
 
         public ArtifactCollection Specification(string buildSpecification)
         {
-            var xml = _caller.GetRaw(string.Format("/repository/download/{0}/{1}/teamcity-ivy.xml", _buildConfigId, buildSpecification));
+            var xml =
+              _caller.GetRaw(string.Format("/repository/download/{0}/{1}/teamcity-ivy.xml", _buildConfigId, buildSpecification));
 
             var document = new XmlDocument();
             document.LoadXml(xml);
             var artifactNodes = document.SelectNodes("//artifact");
             if (artifactNodes == null)
-            {
                 return null;
-            }
             var list = new List<string>();
             foreach (XmlNode node in artifactNodes)
             {
@@ -78,13 +146,9 @@ namespace TeamCitySharp.ActionTypes
                 var extensionNode = node.SelectSingleNode("@ext");
                 var artifact = string.Empty;
                 if (nameNode != null)
-                {
                     artifact = nameNode.Value;
-                }
                 if (extensionNode != null)
-                {
                     artifact += "." + extensionNode.Value;
-                }
                 list.Add(string.Format("/repository/download/{0}/{1}/{2}", _buildConfigId, buildSpecification, artifact));
             }
             return new ArtifactCollection(_caller, list);
@@ -93,10 +157,10 @@ namespace TeamCitySharp.ActionTypes
 
     public class ArtifactCollection
     {
-        private readonly TeamCityCaller _caller;
+        private readonly ITeamCityCaller _caller;
         private readonly List<string> _urls;
 
-        internal ArtifactCollection(TeamCityCaller caller, List<string> urls)
+        internal ArtifactCollection(ITeamCityCaller caller, List<string> urls)
         {
             _caller = caller;
             _urls = urls;
@@ -120,9 +184,7 @@ namespace TeamCitySharp.ActionTypes
         public List<string> Download(string directory = null, bool flatten = false, bool overwrite = true)
         {
             if (directory == null)
-            {
                 directory = Directory.GetCurrentDirectory();
-            }
             var downloaded = new List<string>();
             foreach (var url in _urls)
             {
@@ -132,16 +194,14 @@ namespace TeamCitySharp.ActionTypes
                 // figure out local filename
                 var parts = url.Split('/').Skip(5).ToArray();
                 var destination = flatten
-                    ? parts.Last()
-                    : string.Join(Path.DirectorySeparatorChar.ToString(), parts);
+                                    ? parts.Last()
+                                    : string.Join(Path.DirectorySeparatorChar.ToString(), parts);
                 destination = Path.Combine(directory, destination);
 
                 // create directories that doesnt exist
                 var directoryName = Path.GetDirectoryName(destination);
                 if (directoryName != null && !Directory.Exists(directoryName))
-                {
                     Directory.CreateDirectory(directoryName);
-                }
 
                 // add artifact to list regardless if it was downloaded or skipped
                 downloaded.Add(Path.GetFullPath(destination));
@@ -155,6 +215,118 @@ namespace TeamCitySharp.ActionTypes
                 _caller.GetDownloadFormat(tempfile => File.Move(tempfile, destination), url);
             }
             return downloaded;
+        }
+
+        /// <summary>
+        /// Takes a list of artifact urls and downloads them, see ArtifactsBy* methods.
+        /// </summary>
+        /// <param name="directory">
+        /// Destination directory for downloaded artifacts, default is current working directory.
+        /// </param>
+        /// <param name="flatten">
+        /// If <see langword="true"/> all files will be downloaded to destination directory, no subfolders will be created.
+        /// </param>
+        /// <param name="overwrite">
+        /// If <see langword="true"/> files that already exist where a downloaded file is to be placed will be deleted prior to download.
+        /// </param>
+        /// <param name="filteredFiles"></param>
+        /// <returns>
+        /// A list of full paths to all downloaded artifacts.
+        /// </returns>
+        public List<string> DownloadFiltered(string directory = null, List<string> filteredFiles = null,
+                                             bool flatten = false, bool overwrite = true)
+        {
+            if (directory == null)
+                directory = Directory.GetCurrentDirectory();
+            var downloaded = new List<string>();
+            foreach (var url in _urls)
+            {
+                if (filteredFiles != null)
+                {
+                    foreach (var filteredFile in filteredFiles)
+                    {
+                        var currentFilename = new Wildcard(GetFilename(filteredFile), RegexOptions.IgnoreCase);
+                        var currentExt = new Wildcard(GetExtension(filteredFile), RegexOptions.IgnoreCase);
+
+                        // user probably didnt use to artifact url generating functions
+                        Debug.Assert(url.StartsWith("/repository/download/"));
+
+                        // figure out local filename
+                        var parts = url.Split('/').Skip(5).ToArray();
+                        var destination = flatten
+                                            ? parts.Last()
+                                            : string.Join(Path.DirectorySeparatorChar.ToString(CultureInfo.InvariantCulture), parts);
+                        destination = Path.Combine(directory, destination);
+
+
+                        if (currentFilename.IsMatch(Path.GetFileNameWithoutExtension(destination)) &&
+                            currentExt.IsMatch(Path.GetExtension(destination)))
+                        {
+                            // create directories that doesnt exist
+                            var directoryName = Path.GetDirectoryName(destination);
+                            if (directoryName != null && !Directory.Exists(directoryName))
+                                Directory.CreateDirectory(directoryName);
+
+                            downloaded.Add(Path.GetFullPath(destination));
+
+                            // if the file already exists delete it or move to next artifact
+                            if (File.Exists(destination))
+                            {
+                                if (overwrite) File.Delete(destination);
+                                else continue;
+                            }
+                            _caller.GetDownloadFormat(tempfile => File.Move(tempfile, destination), url);
+                            break;
+                        }
+                    }
+                }
+            }
+            return downloaded;
+        }
+
+        private static string GetExtension(string path)
+        {
+            return path.Substring(path.LastIndexOf('.'));
+        }
+
+        private static string GetFilename(string path)
+        {
+            return path.Substring(0, path.LastIndexOf('.'));
+        }
+    }
+
+    internal class Wildcard : Regex
+    {
+        /// <summary>
+        /// Initializes a wildcard with the given search pattern.
+        /// </summary>
+        /// <param name="pattern">The wildcard pattern to match.</param>
+        public Wildcard(string pattern)
+          : base(WildcardToRegex(pattern))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a wildcard with the given search pattern and options.
+        /// </summary>
+        /// <param name="pattern">The wildcard pattern to match.</param>
+        /// <param name="options">A combination of one or more
+        /// <see cref="RegexOptions"/>.</param>
+        public Wildcard(string pattern, RegexOptions options)
+          : base(WildcardToRegex(pattern), options)
+        {
+        }
+
+        /// <summary>
+        /// Converts a wildcard to a regex.
+        /// </summary>
+        /// <param name="pattern">The wildcard pattern to convert.</param>
+        /// <returns>A regex equivalent of the given wildcard.</returns>
+        public static string WildcardToRegex(string pattern)
+        {
+            return "^" + Regex.Escape(pattern).
+                               Replace("\\*", ".*").
+                               Replace("\\?", ".") + "$";
         }
     }
 }

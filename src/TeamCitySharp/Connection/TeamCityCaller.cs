@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.IO;
 using System.Net;
 using System.Security.Authentication;
@@ -13,6 +13,7 @@ namespace TeamCitySharp.Connection
     internal class TeamCityCaller : ITeamCityCaller
     {
         private readonly Credentials _configuration = new Credentials();
+        private bool _useNoCache;
 
         public TeamCityCaller(string hostName, bool useSsl)
         {
@@ -21,6 +22,16 @@ namespace TeamCitySharp.Connection
 
             _configuration.UseSSL = useSsl;
             _configuration.HostName = hostName;
+        }
+
+        public void DisableCache()
+        {
+            _useNoCache = true;
+        }
+
+        public void EnableCache()
+        {
+            _useNoCache = false;
         }
 
         public void Connect(string userName, string password, bool actAsGuest)
@@ -63,35 +74,27 @@ namespace TeamCitySharp.Connection
         public void GetDownloadFormat(Action<string> downloadHandler, string urlPart, params object[] parts)
         {
             if (CheckForUserNameAndPassword())
-            {
                 throw new ArgumentException("If you are not acting as a guest you must supply userName and password");
-            }
-
+            urlPart = System.Web.HttpUtility.UrlEncode(urlPart);
             if (string.IsNullOrEmpty(urlPart))
-            {
                 throw new ArgumentException("Url must be specfied");
-            }
 
             if (downloadHandler == null)
-            {
                 throw new ArgumentException("A download handler must be specfied.");
-            }
 
             string tempFileName = Path.GetRandomFileName();
             var url = CreateUrl(string.Format(urlPart, parts));
 
             try
             {
-                CreateHttpClient(_configuration.UserName, _configuration.Password, HttpContentTypes.ApplicationJson).GetAsFile(url, tempFileName);
+                CreateHttpClient(_configuration.UserName, _configuration.Password, HttpContentTypes.ApplicationJson)
+                  .GetAsFile(url, tempFileName);
                 downloadHandler.Invoke(tempFileName);
-
             }
             finally
             {
                 if (File.Exists(tempFileName))
-                {
                     File.Delete(tempFileName);
-                }
             }
         }
 
@@ -110,9 +113,7 @@ namespace TeamCitySharp.Connection
             ThrowIfHttpError(response, url);
 
             if (response.StatusCode == HttpStatusCode.OK)
-            {
                 return response.RawText;
-            }
 
             return string.Empty;
         }
@@ -122,7 +123,7 @@ namespace TeamCitySharp.Connection
             var response = GetResponse(urlPart);
             return response.StaticBody<T>();
         }
-        
+
         public void Get(string urlPart)
         {
             GetResponse(urlPart);
@@ -138,22 +139,23 @@ namespace TeamCitySharp.Connection
 
             var url = CreateUrl(urlPart);
 
-            var response = CreateHttpClient(_configuration.UserName, _configuration.Password, HttpContentTypes.ApplicationJson).Get(url);
+            var response =
+              CreateHttpClient(_configuration.UserName, _configuration.Password, HttpContentTypes.ApplicationJson).Get(url);
             ThrowIfHttpError(response, url);
             return response;
         }
 
-        public T Post<T>(string data, string contenttype, string urlPart, string accept)
+        public T Post<T>(object data, string contenttype, string urlPart, string accept)
         {
             return Post(data, contenttype, urlPart, accept).StaticBody<T>();
         }
 
-        public bool Authenticate(string urlPart)
+        public bool Authenticate(string urlPart, bool throwExceptionOnHttpError = true)
         {
             try
             {
                 var httpClient = CreateHttpClient(_configuration.UserName, _configuration.Password, HttpContentTypes.TextPlain);
-                httpClient.ThrowExceptionOnHttpError = true;
+                httpClient.ThrowExceptionOnHttpError = throwExceptionOnHttpError;
                 httpClient.Get(CreateUrl(urlPart));
 
                 var response = httpClient.Response;
@@ -193,7 +195,8 @@ namespace TeamCitySharp.Connection
 
         private HttpClient MakePostRequest(object data, string contenttype, string urlPart, string accept)
         {
-            var client = CreateHttpClient(_configuration.UserName, _configuration.Password, string.IsNullOrWhiteSpace(accept) ? GetContentType(data.ToString()) : accept);
+            var client = CreateHttpClient(_configuration.UserName, _configuration.Password,
+                                          string.IsNullOrWhiteSpace(accept) ? GetContentType(data.ToString()) : accept);
 
             client.Request.Accept = accept;
 
@@ -205,7 +208,8 @@ namespace TeamCitySharp.Connection
 
         private HttpClient MakePutRequest(object data, string contenttype, string urlPart, string accept)
         {
-            var client = CreateHttpClient(_configuration.UserName, _configuration.Password, string.IsNullOrWhiteSpace(accept) ? GetContentType(data.ToString()) : accept);
+            var client = CreateHttpClient(_configuration.UserName, _configuration.Password,
+                                          string.IsNullOrWhiteSpace(accept) ? GetContentType(data.ToString()) : accept);
 
             client.Request.Accept = accept;
 
@@ -230,23 +234,32 @@ namespace TeamCitySharp.Connection
         /// </summary>
         private static void ThrowIfHttpError(HttpResponse response, string url)
         {
-            if(!IsHttpError(response))
+            if (!IsHttpError(response))
                 return;
-            throw new HttpException(response.StatusCode, string.Format("Error: {0}\nHTTP: {3}\nURL: {1}\n{2}", response.StatusDescription, url, response.RawText, response.StatusCode));
+            throw new HttpException(response.StatusCode,
+                                    string.Format("Error: {0}\nHTTP: {3}\nURL: {1}\n{2}", response.StatusDescription, url,
+                                                  response.RawText, response.StatusCode));
         }
 
         private string CreateUrl(string urlPart)
         {
             var protocol = _configuration.UseSSL ? "https://" : "http://";
-            var authType = _configuration.ActAsGuest ? "/guestAuth" : "/httpAuth";
+            var authType = UrlMissingAuthType(urlPart) ? (_configuration.ActAsGuest ? "/guestAuth" : "/httpAuth") : string.Empty;
 
             return string.Format("{0}{1}{2}{3}", protocol, _configuration.HostName, authType, urlPart);
+        }
+
+        private static bool UrlMissingAuthType(string urlPart)
+        {
+            return !urlPart.Contains("/guestAuth/") && !urlPart.Contains("/httpAuth/");
         }
 
         private HttpClient CreateHttpClient(string userName, string password, string accept)
         {
             var httpClient = new HttpClient(new TeamcityJsonEncoderDecoderConfiguration());
             httpClient.Request.Accept = accept;
+            if (_useNoCache)
+                httpClient.Request.SetCacheControlToNoCache();
             if (!_configuration.ActAsGuest)
             {
                 httpClient.Request.SetBasicAuthentication(userName, password);
@@ -271,7 +284,8 @@ namespace TeamCitySharp.Connection
             var response = httpClient.Get(url);
             if (IsHttpError(response))
             {
-                throw new HttpException(response.StatusCode, string.Format("Error {0}: Thrown with URL {1}", response.StatusDescription, url));
+                throw new HttpException(response.StatusCode,
+                                        string.Format("Error {0}: Thrown with URL {1}", response.StatusDescription, url));
             }
 
             return response.RawText;
@@ -279,7 +293,8 @@ namespace TeamCitySharp.Connection
 
         private bool CheckForUserNameAndPassword()
         {
-            return !_configuration.ActAsGuest && string.IsNullOrEmpty(_configuration.UserName) && string.IsNullOrEmpty(_configuration.Password);
+            return !_configuration.ActAsGuest && string.IsNullOrEmpty(_configuration.UserName) &&
+                   string.IsNullOrEmpty(_configuration.Password);
         }
 
         private string GetContentType(string data)
@@ -287,6 +302,30 @@ namespace TeamCitySharp.Connection
             if (data.StartsWith("<"))
                 return HttpContentTypes.ApplicationXml;
             return HttpContentTypes.TextPlain;
+        }
+
+        public bool GetBoolean(string urlPart, params object[] parts)
+        {
+            var urlfull = string.Format(urlPart, parts);
+
+            try
+            {
+                if (CheckForUserNameAndPassword())
+                    throw new ArgumentException("If you are not acting as a guest you must supply userName and password");
+
+                if (string.IsNullOrEmpty(urlfull))
+                    throw new ArgumentException("Url must be specfied");
+
+                var url = CreateUrl(urlfull);
+
+                var response =
+                  CreateHttpClient(_configuration.UserName, _configuration.Password, HttpContentTypes.ApplicationJson).Get(url);
+                return !IsHttpError(response);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }
