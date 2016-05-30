@@ -80,6 +80,8 @@
     <Compile Include="Connection\ITeamCityCaller.cs" />
     <Compile Include="DomainEntities\Artifact.cs" />
     <Compile Include="DomainEntities\Artifacts.cs" />
+    <Compile Include="DomainEntities\Revision.cs" />
+    <Compile Include="DomainEntities\Revisions.cs" />
     <Compile Include="DomainEntities\HrefWrapper.cs" />
     <Compile Include="DomainEntities\InvesigationResolution.cs" />
     <Compile Include="DomainEntities\InvesigationTarget.cs" />

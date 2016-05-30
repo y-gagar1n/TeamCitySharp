@@ -183,7 +183,7 @@ namespace TeamCitySharp.IntegrationTests
     }
 
     [Test]
-    public void ig_returns_correct_build_when_calling_by_id()
+    public void it_returns_correct_build_when_calling_by_id()
     {
       const string buildId = "212861";
 

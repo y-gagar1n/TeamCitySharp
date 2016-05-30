@@ -314,7 +314,7 @@ namespace TeamCitySharp.Locators
             }
             if (Project != null)
             {
-                dimensions.Add("projects:(" + Project + ")");
+                dimensions.Add("project:(" + Project + ")");
             }
             if (Tags != null)
             {
