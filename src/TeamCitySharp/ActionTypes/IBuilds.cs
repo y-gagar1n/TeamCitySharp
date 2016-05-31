@@ -7,7 +7,7 @@ namespace TeamCitySharp.ActionTypes
 {
   public interface IBuilds
   {
-    Builds GetFields(string fields);
+    IBuilds GetFields(string fields);
     List<Build> SuccessfulBuildsByBuildConfigId(string buildConfigId);
     List<Build> SuccessfulBuildsByBuildConfigId(string buildConfigId, List<String> param);
     Build LastSuccessfulBuildByBuildConfigId(string buildConfigId);

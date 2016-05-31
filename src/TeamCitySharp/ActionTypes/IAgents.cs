@@ -6,6 +6,6 @@ namespace TeamCitySharp.ActionTypes
   public interface IAgents
   {
     List<Agent> All(bool includeDisconnected = false, bool includeUnauthorized = false);
-    Agents GetFields(string fields);
+    IAgents GetFields(string fields);
   }
 }

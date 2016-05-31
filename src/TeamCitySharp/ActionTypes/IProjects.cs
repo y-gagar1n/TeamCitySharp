@@ -6,7 +6,7 @@ namespace TeamCitySharp.ActionTypes
   public interface IProjects
   {
     List<Project> All();
-    Projects GetFields(string fields);
+    IProjects GetFields(string fields);
     Project ByName(string projectLocatorName);
     Project ById(string projectLocatorId);
     Project Details(Project project);

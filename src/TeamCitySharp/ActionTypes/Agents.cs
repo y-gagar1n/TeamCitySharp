@@ -14,7 +14,7 @@ namespace TeamCitySharp.ActionTypes
       _caller = caller;
     }
 
-    public Agents GetFields(string fields)
+    public IAgents GetFields(string fields)
     {
       var newInstance = (Agents) MemberwiseClone();
       newInstance._fields = fields;
