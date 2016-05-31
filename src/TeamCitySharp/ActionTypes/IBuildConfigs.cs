@@ -9,7 +9,7 @@ namespace TeamCitySharp.ActionTypes
   public interface IBuildConfigs
   {
     List<BuildConfig> All();
-    BuildConfigs GetFields(string fields);
+    IBuildConfigs GetFields(string fields);
     BuildConfig ByConfigurationName(string buildConfigName);
     BuildConfig ByConfigurationId(string buildConfigId);
     BuildConfig ByProjectNameAndConfigurationName(string projectName, string buildConfigName);
