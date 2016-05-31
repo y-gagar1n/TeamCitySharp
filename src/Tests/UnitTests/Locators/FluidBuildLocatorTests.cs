@@ -74,8 +74,22 @@ namespace TeamCitySharp.UnitTests
             [Test]
             public void ReturnsWithRunningTrue()
             {
-                var locator = new FluidBuildLocator().WithRunning(true);
-                Assert.AreEqual("running:True", locator.ToString());
+                var locator = new FluidBuildLocator().WithRunning(RunningLocatorFlag.True);
+                Assert.AreEqual("running:true", locator.ToString());
+            }
+
+            [Test]
+            public void ReturnsWithRunningFalse()
+            {
+                var locator = new FluidBuildLocator().WithRunning(RunningLocatorFlag.False);
+                Assert.AreEqual("running:false", locator.ToString());
+            }
+
+            [Test]
+            public void ReturnsWithRunningAny()
+            {
+                var locator = new FluidBuildLocator().WithRunning(RunningLocatorFlag.Any);
+                Assert.AreEqual("running:any", locator.ToString());
             }
 
             [Test]

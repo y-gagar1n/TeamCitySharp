@@ -55,6 +55,12 @@ namespace TeamCitySharp.Locators
             private set;
         }
 
+        public IProjectLocator AffectedProject
+        {
+            get;
+            private set;
+        }
+
         public string AgentName
         {
             get;
@@ -85,7 +91,7 @@ namespace TeamCitySharp.Locators
             private set;
         }
 
-        public bool? Running
+        public RunningLocatorFlag? Running
         {
             get;
             private set;
@@ -163,6 +169,13 @@ namespace TeamCitySharp.Locators
             return clone;
         }
 
+        public FluidBuildLocator WithAffectedProject(IProjectLocator project)
+        {
+            var clone = (FluidBuildLocator)this.MemberwiseClone();
+            clone.AffectedProject = project;
+            return clone;
+        }
+
         public FluidBuildLocator WithAgentName(string agentName)
         {
             var clone = (FluidBuildLocator)this.MemberwiseClone();
@@ -198,7 +211,7 @@ namespace TeamCitySharp.Locators
             return clone;
         }
 
-        public FluidBuildLocator WithRunning(bool? running)
+        public FluidBuildLocator WithRunning(RunningLocatorFlag running)
         {
             var clone = (FluidBuildLocator)this.MemberwiseClone();
             clone.Running = running;
@@ -243,11 +256,12 @@ namespace TeamCitySharp.Locators
         public FluidBuildLocator WithDimensions(IBuildTypeLocator buildType = null,
                                     IUserLocator user = null,
                                     IProjectLocator project = null,
+                                    IProjectLocator affectedProject = null,
                                     string agentName = null,
                                     BuildStatus? status = null,
                                     bool? personal = null,
                                     bool? cancelled = null,
-                                    bool? running = null,
+                                    RunningLocatorFlag? running = null,
                                     bool? pinned = null,
                                     int? maxResults = null,
                                     int? startIndex = null,
@@ -262,6 +276,7 @@ namespace TeamCitySharp.Locators
                 BuildType = buildType,
                 User = user,
                 Project = project,
+                AffectedProject = affectedProject,
                 AgentName = agentName,
                 Status = status,
                 Personal = personal,
@@ -279,7 +294,7 @@ namespace TeamCitySharp.Locators
 
         public static FluidBuildLocator RunningBuilds()
         {
-            return new FluidBuildLocator { Running = true };
+            return new FluidBuildLocator { Running = RunningLocatorFlag.True };
         }
 
         #endregion
@@ -316,6 +331,10 @@ namespace TeamCitySharp.Locators
             {
                 dimensions.Add("project:(" + Project + ")");
             }
+            if (AffectedProject != null)
+            {
+                dimensions.Add("affectedProject:(" + AffectedProject + ")");
+            }
             if (Tags != null)
             {
                 dimensions.Add("tags:(" + string.Join(",", Tags) + ")");
@@ -342,7 +361,7 @@ namespace TeamCitySharp.Locators
             }
             if (Running.HasValue)
             {
-                dimensions.Add("running:" + Running.Value.ToString());
+                dimensions.Add("running:" + Running.Value.ToString().ToLowerInvariant());
             }
             if (Pinned.HasValue)
             {
