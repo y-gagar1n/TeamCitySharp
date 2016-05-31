@@ -123,6 +123,7 @@
     <Compile Include="Fields\VcsRootEntriesField.cs" />
     <Compile Include="Fields\VcsRootEntryField.cs" />
     <Compile Include="Fields\VcsRootField.cs" />
+    <Compile Include="Locators\RunningLocatorFlag.cs" />
     <Compile Include="Locators\BranchLocatorFlag.cs" />
     <Compile Include="Locators\BuildStatus.cs" />
     <Compile Include="Locators\FluidBranchLocator.cs" />
