@@ -52,7 +52,7 @@ namespace TeamCitySharp.ActionTypes
         public VcsRoot AttachVcsRoot(BuildTypeLocator locator, VcsRoot vcsRoot)
         {
             var xml = string.Format(@"<vcs-root-entry><vcs-root id=""{0}""/></vcs-root-entry>", vcsRoot.Id);
-            return _caller.PostFormat<VcsRoot>(xml, HttpContentTypes.ApplicationXml, string.Empty,
+            return _caller.PostFormat<VcsRoot>(xml, HttpContentTypes.ApplicationXml, HttpContentTypes.ApplicationJson,
                                                "/app/rest/buildTypes/{0}/vcs-root-entries", locator);
         }
 
